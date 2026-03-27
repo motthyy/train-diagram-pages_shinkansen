@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>東海道・山陽新幹線 ダイヤグラム</title>
+  <title>鉄道ダイヤグラム</title>
   <style>
     :root {
       --bg-top: #081120;
@@ -15,145 +15,29 @@
       --accent-strong: #38bdf8;
       --text-main: #ecf0f1;
       --text-sub: #9fb8d6;
-      --station-km: #7ec8e3;
       --diagram-bg: #0a1424;
       --sidebar-w: 118px;
-      --header-h: 58px;
       --time-h: 52px;
-      --shadow: 0 16px 50px rgba(0, 0, 0, 0.28);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
 
     body {
       font-family: "Avenir Next", "Hiragino Sans", "Yu Gothic", sans-serif;
       color: var(--text-main);
-      background:
-        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 32%),
-        radial-gradient(circle at top right, rgba(75, 181, 67, 0.12), transparent 28%),
-        linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 40px 40px;
-      opacity: 0.25;
-      pointer-events: none;
-    }
-
-    #app {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-rows: 1fr;
-      height: 100vh;
-      height: 100dvh;
-      width: 100vw;
-    }
-
-    #topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 12px max(14px, env(safe-area-inset-left)) 12px max(14px, env(safe-area-inset-right));
-      border-bottom: 1px solid var(--panel-line);
-      background: linear-gradient(180deg, rgba(8, 16, 30, 0.92), rgba(8, 16, 30, 0.72));
-      backdrop-filter: blur(14px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
-    }
-
-    .brand {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      min-width: 0;
-    }
-
-    .brand .eyebrow {
-      color: var(--accent);
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-
-    .brand .title {
-      color: var(--text-main);
-      font-size: 19px;
-      font-weight: 800;
-      line-height: 1.1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .meta {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 5px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(140, 201, 255, 0.22);
-      background: rgba(140, 201, 255, 0.12);
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      white-space: nowrap;
-    }
-
-    #status-text {
-      max-width: 360px;
-      color: var(--text-sub);
-      font-size: 12px;
-      text-align: right;
-      line-height: 1.4;
+      background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
     }
 
     #workspace {
       display: grid;
       grid-template-columns: var(--sidebar-w) 1fr;
       grid-template-rows: var(--time-h) 1fr;
-      min-height: 0;
-      min-width: 0;
-      margin: 0;
-      margin-left: env(safe-area-inset-left);
-      margin-right: env(safe-area-inset-right);
-      margin-bottom: env(safe-area-inset-bottom);
-      margin-top: env(safe-area-inset-top);
-      border: none;
-      border-radius: 0;
+      height: 100vh;
+      height: 100dvh;
+      width: 100vw;
       overflow: hidden;
-      background: rgba(9, 18, 34, 0.45);
-    }
-
-    #corner,
-    #time-header,
-    #station-sidebar {
-      background: linear-gradient(180deg, rgba(7, 17, 33, 0.96), rgba(13, 26, 46, 0.9));
     }
 
     #corner {
@@ -162,117 +46,177 @@
       align-items: flex-start;
       justify-content: center;
       gap: 4px;
-      padding: 10px 12px;
+      padding: 8px 10px;
+      background: linear-gradient(180deg, rgba(7,17,33,0.96), rgba(13,26,46,0.9));
       border-right: 1px solid var(--panel-line);
       border-bottom: 1px solid var(--panel-line);
     }
 
-    #corner .line-small {
-      color: var(--text-sub);
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    #corner .line-name {
-      color: var(--text-main);
-      font-size: 13px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
-    #time-header,
-    #station-sidebar,
-    #diagram-area {
-      position: relative;
-      overflow: hidden;
-    }
+    #corner .line-small { color: var(--text-sub); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+    #corner .line-name  { color: var(--text-main); font-size: 11px; font-weight: 800; line-height: 1.2; }
 
     #time-header {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(7,17,33,0.96), rgba(13,26,46,0.9));
       border-bottom: 1px solid var(--panel-line);
     }
 
     #station-sidebar {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(7,17,33,0.96), rgba(13,26,46,0.9));
       border-right: 1px solid var(--panel-line);
     }
 
     #diagram-area {
+      position: relative;
+      overflow: hidden;
       cursor: grab;
-      background:
-        radial-gradient(circle at top, rgba(56, 189, 248, 0.07), transparent 38%),
-        var(--diagram-bg);
+      background: var(--diagram-bg);
       touch-action: none;
     }
+    #diagram-area:active { cursor: grabbing; }
 
-    #diagram-area:active {
-      cursor: grabbing;
-    }
+    canvas { position: absolute; inset: 0; }
 
-    canvas {
-      position: absolute;
-      inset: 0;
-    }
-
-    #controls,
-    #legend,
-    #footer-meta {
+    /* ===== UI PANEL ===== */
+    #ui-toggle {
       position: fixed;
-      z-index: 10;
-      backdrop-filter: blur(16px);
-    }
-
-    #legend {
-      right: max(14px, env(safe-area-inset-right));
       bottom: max(14px, env(safe-area-inset-bottom));
-      min-width: 176px;
-      padding: 12px 14px;
-      border: 1px solid var(--panel-line);
-      border-radius: 16px;
-      background: rgba(7, 17, 33, 0.88);
-      box-shadow: var(--shadow);
-    }
-
-    #legend h2 {
-      margin-bottom: 9px;
-      color: var(--text-main);
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .legend-row {
+      right: max(14px, env(safe-area-inset-right));
+      z-index: 50;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(140,201,255,0.3);
+      background: rgba(7,17,33,0.88);
+      color: var(--accent);
+      font-size: 20px;
+      cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      transition: background 0.2s;
+    }
+    #ui-toggle:hover { background: rgba(20,40,70,0.95); }
+
+    #ui-panel {
+      position: fixed;
+      bottom: max(66px, calc(env(safe-area-inset-bottom) + 52px));
+      right: max(14px, env(safe-area-inset-right));
+      z-index: 40;
+      width: min(340px, calc(100vw - 28px));
+      border: 1px solid var(--panel-line);
+      border-radius: 16px;
+      background: rgba(7,17,33,0.93);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    #ui-panel.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+    }
+
+    .panel-section-title {
+      color: var(--text-sub);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    /* Route group tabs */
+    #route-group-tabs {
+      display: flex;
+      gap: 6px;
+    }
+    .group-tab {
+      flex: 1;
+      padding: 7px 4px;
+      border-radius: 10px;
+      border: 1px solid rgba(140,201,255,0.18);
+      background: rgba(140,201,255,0.07);
       color: var(--text-sub);
       font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .group-tab.active {
+      background: rgba(140,201,255,0.22);
+      border-color: rgba(140,201,255,0.4);
+      color: var(--accent);
     }
 
-    .legend-row + .legend-row {
-      margin-top: 6px;
+    /* Route list */
+    #route-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 200px;
+      overflow-y: auto;
     }
+    #route-list::-webkit-scrollbar { width: 4px; }
+    #route-list::-webkit-scrollbar-track { background: transparent; }
+    #route-list::-webkit-scrollbar-thumb { background: rgba(140,201,255,0.2); border-radius: 2px; }
 
-    .legend-sample {
-      width: 28px;
-      height: 3px;
-      border-radius: 999px;
+    .route-item {
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(140,201,255,0.1);
+      background: rgba(140,201,255,0.05);
+      color: var(--text-sub);
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .route-item:hover { background: rgba(140,201,255,0.12); color: var(--text-main); }
+    .route-item.active {
+      background: rgba(140,201,255,0.18);
+      border-color: rgba(140,201,255,0.35);
+      color: var(--accent);
+    }
+    .route-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
       flex: 0 0 auto;
     }
 
-    #footer-meta {
-      left: max(14px, env(safe-area-inset-left));
-      bottom: max(14px, env(safe-area-inset-bottom));
+    /* Legend */
+    #legend-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+    }
+    .legend-chip {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border: 1px solid var(--panel-line);
-      border-radius: 14px;
-      background: rgba(7, 17, 33, 0.74);
+      gap: 5px;
       color: var(--text-sub);
-      font-size: 12px;
+      font-size: 11px;
     }
+    .legend-line {
+      width: 22px;
+      height: 3px;
+      border-radius: 2px;
+      flex: 0 0 auto;
+    }
+    .legend-line.thick { height: 5px; }
 
+    /* Loading */
     #loading {
       position: fixed;
       inset: 0;
@@ -280,632 +224,916 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background:
-        radial-gradient(circle at top, rgba(56, 189, 248, 0.14), transparent 35%),
-        rgba(5, 11, 21, 0.92);
+      background: rgba(5,11,21,0.92);
       backdrop-filter: blur(20px);
       transition: opacity 0.32s ease, visibility 0.32s ease;
     }
-
-    #loading.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-
+    #loading.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
     .loading-card {
       width: min(420px, calc(100vw - 36px));
       padding: 28px 26px;
-      border: 1px solid rgba(140, 201, 255, 0.16);
+      border: 1px solid rgba(140,201,255,0.16);
       border-radius: 24px;
-      background: rgba(8, 16, 30, 0.9);
-      box-shadow: var(--shadow);
+      background: rgba(8,16,30,0.9);
       text-align: center;
     }
-
     .spinner {
-      width: 48px;
-      height: 48px;
+      width: 48px; height: 48px;
       margin: 0 auto 18px;
-      border: 3px solid rgba(140, 201, 255, 0.18);
+      border: 3px solid rgba(140,201,255,0.18);
       border-top-color: var(--accent-strong);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
-
-    .loading-title {
-      color: var(--text-main);
-      font-size: 20px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .loading-detail {
-      color: var(--text-sub);
-      font-size: 13px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 900px) {
-      #status-text,
-      #legend,
-      #footer-meta {
-        display: none;
-      }
-    }
-
-    @media (max-width: 640px) {
-      :root {
-        --header-h: 64px;
-        --time-h: 48px;
-      }
-
-      #topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-
-      .meta {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-    }
+    .loading-title { color: var(--text-main); font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .loading-detail { color: var(--text-sub); font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
-  <script src="diagram-data.js" onerror="console.warn('diagram-data.js が見つかりません。先に bun fetch-diagram.ts を実行してください。')"></script>
+
+  <script src="diagram-data.js"
+    onerror="console.warn('diagram-data.js が見つかりません')"></script>
+  <script src="zairaisen-data.js"
+    onerror="console.warn('zairaisen-data.js が見つかりません')"></script>
 </head>
 <body>
-  <div id="loading">
-    <div class="loading-card">
-      <div class="spinner"></div>
-      <div class="loading-title">ダイヤデータを準備中</div>
-      <div class="loading-detail" id="loading-detail">ローカルデータを確認しています...</div>
+
+<div id="loading">
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <div class="loading-title">ダイヤデータを準備中</div>
+    <div class="loading-detail" id="loading-detail">データを確認しています...</div>
+  </div>
+</div>
+
+<div id="workspace">
+  <div id="corner">
+    <div class="line-small">Line View</div>
+    <div class="line-name" id="line-name-display">---</div>
+  </div>
+  <div id="time-header"><canvas id="time-canvas"></canvas></div>
+  <div id="station-sidebar"><canvas id="station-canvas"></canvas></div>
+  <div id="diagram-area"><canvas id="diagram-canvas"></canvas></div>
+</div>
+
+<!-- UI toggle button -->
+<button id="ui-toggle" aria-label="路線・凡例">☰</button>
+
+<!-- UI panel -->
+<div id="ui-panel" class="hidden">
+  <div>
+    <div class="panel-section-title">路線グループ</div>
+    <div id="route-group-tabs">
+      <button class="group-tab active" data-group="shinkansen">新幹線</button>
+      <button class="group-tab" data-group="zairaisen">在来線</button>
     </div>
   </div>
-
-  <div id="app">
-    <div id="workspace">
-      <div id="corner">
-        <div class="line-small">Line View</div>
-        <div class="line-name" id="line-name-display">東海道・山陽新幹線（東京〜博多）</div>
-      </div>
-      <div id="time-header"><canvas id="time-canvas"></canvas></div>
-      <div id="station-sidebar"><canvas id="station-canvas"></canvas></div>
-      <div id="diagram-area"><canvas id="diagram-canvas"></canvas></div>
-    </div>
+  <div>
+    <div class="panel-section-title">路線選択</div>
+    <div id="route-list"></div>
   </div>
-
-  <div id="legend">
-    <h2>Train Types</h2>
-    <div id="legend-rows"></div>
+  <div>
+    <div class="panel-section-title">凡例</div>
+    <div id="legend-items"></div>
   </div>
+</div>
 
+<script>
+// ============================================================
+// 定数・設定
+// ============================================================
+const FONT = "'Avenir Next','Hiragino Sans','Yu Gothic',sans-serif";
+const PX_PER_MIN = 2.8;
+const PX_PER_KM  = 2.15;
+const TIME_H     = 52;
 
+// 新幹線列車種別
+const SHINKANSEN_META = {
+  nozomi:  { label: "のぞみ",  color: "#FFD700" },
+  hikari:  { label: "ひかり",  color: "#FF6B6B" },
+  kodama:  { label: "こだま",  color: "#5BB8FF" },
+  mizuho:  { label: "みずほ",  color: "#FF9040" },
+  sakura:  { label: "さくら",  color: "#FF85C0" },
+  tsubame: { label: "つばめ",  color: "#D580FF" },
+};
 
-  <div id="footer-meta">
-    <span id="fetched-at">取得時刻: -</span>
-    <span id="source-note">データソース: -</span>
-  </div>
+// 在来線列車種別（紺背景用の明るい色）
+const ZAIRAISEN_META = {
+  local:         { label: "普通",       color: "#FFFFFF",  thick: false },
+  rapid_local:   { label: "区間快速",   color: "#4CAF50",  thick: false },
+  rapid:         { label: "快速",       color: "#5BB8FF",  thick: false },
+  rapid_new:     { label: "新快速",     color: "#FF9040",  thick: false },
+  rapid_special: { label: "特別快速",   color: "#FFD700",  thick: false },
+  home_liner:    { label: "ホームライナー", color: "#FF6B6B", thick: false },
+  express:       { label: "特急",       color: "#FF6B6B",  thick: true  },
+};
 
-  <script>
-    const DISPLAY_START_MIN = 6 * 60;
-    const DISPLAY_END_MIN = 24 * 60;
-    const PX_PER_MIN = 2.8;
-    const PX_PER_KM = 2.15;
-    const HEADER_H = 52;
+// ============================================================
+// 状態
+// ============================================================
+let currentGroup   = "shinkansen"; // "shinkansen" | "zairaisen"
+let currentLineKey = null;
+let currentLine    = null;         // { stations, trains, startHour, endHour, lineName, ... }
+let currentType    = "shinkansen"; // tracks which color system
 
-    const TRAIN_META = {
-      nozomi: { code: "6", label: "のぞみ", color: "#FFD700" },
-      hikari: { code: "1", label: "ひかり", color: "#FF6B6B" },
-      kodama: { code: "2", label: "こだま", color: "#5BB8FF" },
-      mizuho: { code: "10", label: "みずほ", color: "#FF9040" },
-      sakura: { code: "11", label: "さくら", color: "#FF85C0" },
-      tsubame: { code: "12", label: "つばめ", color: "#D580FF" }
-    };
+// ハロ（強調表示）
+let highlightedTrain = null;
 
-    const lineNameDisplay = document.getElementById("line-name-display");
-    const loadingEl = document.getElementById("loading");
-    const loadingDetailEl = document.getElementById("loading-detail");
-    const fetchedAtEl = document.getElementById("fetched-at");
-    const sourceNoteEl = document.getElementById("source-note");
-    const legendRowsEl = document.getElementById("legend-rows");
+// スクロールオフセット
+const view = { offsetX: 24, offsetY: 24, scale: 1, minScale: 0.15, maxScale: 6 };
 
-    const diagramArea = document.getElementById("diagram-area");
-    const timeHeader = document.getElementById("time-header");
-    const stationSidebar = document.getElementById("station-sidebar");
-    const diagramCanvas = document.getElementById("diagram-canvas");
-    const timeCanvas = document.getElementById("time-canvas");
-    const stationCanvas = document.getElementById("station-canvas");
-    const diagramCtx = diagramCanvas.getContext("2d");
-    const timeCtx = timeCanvas.getContext("2d");
-    const stationCtx = stationCanvas.getContext("2d");
+// ============================================================
+// DOM要素
+// ============================================================
+const lineNameEl   = document.getElementById("line-name-display");
+const loadingEl    = document.getElementById("loading");
+const loadingDetEl = document.getElementById("loading-detail");
+const uiToggleBtn  = document.getElementById("ui-toggle");
+const uiPanel      = document.getElementById("ui-panel");
+const routeGroupTabs = document.getElementById("route-group-tabs");
+const routeList    = document.getElementById("route-list");
+const legendItems  = document.getElementById("legend-items");
 
-    let sidebarWidth = 118;
-    let currentLine = null;
-    let diagramData = null;
-    let currentSource = "local";
-    let nozomiStationSet = new Set();
+const diagramArea  = document.getElementById("diagram-area");
+const timeHeader   = document.getElementById("time-header");
+const stationSidebar = document.getElementById("station-sidebar");
+const diagCanvas   = document.getElementById("diagram-canvas");
+const timeCanvas   = document.getElementById("time-canvas");
+const stCanvas     = document.getElementById("station-canvas");
+const diagCtx      = diagCanvas.getContext("2d");
+const timeCtx      = timeCanvas.getContext("2d");
+const stCtx        = stCanvas.getContext("2d");
 
-    const view = {
-      offsetX: 24,
-      offsetY: 24,
-      scale: 1,
-      minScale: 0.15,
-      maxScale: 6
-    };
+// ============================================================
+// UI パネルトグル
+// ============================================================
+let uiPanelOpen = false;
 
-    function setLoading(message) {
-      loadingDetailEl.textContent = message;
+function setUiPanel(open) {
+  uiPanelOpen = open;
+  uiPanel.classList.toggle("hidden", !open);
+  uiToggleBtn.textContent = open ? "✕" : "☰";
+}
+
+uiToggleBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  setUiPanel(!uiPanelOpen);
+});
+
+// パネル外クリックで閉じる
+document.addEventListener("click", (e) => {
+  if (uiPanelOpen && !uiPanel.contains(e.target) && e.target !== uiToggleBtn) {
+    setUiPanel(false);
+  }
+});
+
+// ============================================================
+// 路線グループタブ
+// ============================================================
+routeGroupTabs.addEventListener("click", (e) => {
+  const tab = e.target.closest(".group-tab");
+  if (!tab) return;
+  const group = tab.dataset.group;
+  if (group === currentGroup) return;
+  currentGroup = group;
+  document.querySelectorAll(".group-tab").forEach(t => t.classList.toggle("active", t.dataset.group === group));
+  renderRouteList();
+});
+
+// ============================================================
+// 路線リスト描画
+// ============================================================
+function renderRouteList() {
+  routeList.innerHTML = "";
+  const data   = currentGroup === "shinkansen" ? window.DIAGRAM_DATA   : window.ZAIRAISEN_DATA;
+  const prefix = currentGroup === "shinkansen" ? "shinkansen_" : "zairaisen_";
+  if (!data || !data.lines) return;
+
+  for (const [key, ld] of Object.entries(data.lines)) {
+    const id = prefix + key;
+    const item = document.createElement("div");
+    item.className = "route-item" + (currentLineKey === id ? " active" : "");
+    item.dataset.id = id;
+    item.dataset.key = key;
+    item.dataset.group = currentGroup;
+
+    const dot = document.createElement("span");
+    dot.className = "route-dot";
+    dot.style.background = ld.lineColor || "#8cc9ff";
+
+    item.appendChild(dot);
+    item.appendChild(document.createTextNode(ld.lineName));
+    item.addEventListener("click", () => {
+      loadLine(currentGroup, key);
+      setUiPanel(false);
+    });
+    routeList.appendChild(item);
+  }
+}
+
+// ============================================================
+// 凡例描画
+// ============================================================
+function renderLegend() {
+  legendItems.innerHTML = "";
+  const meta = currentType === "shinkansen" ? SHINKANSEN_META : ZAIRAISEN_META;
+  for (const [key, m] of Object.entries(meta)) {
+    // 在来線: 実際に使用されている種別のみ表示
+    if (currentType === "zairaisen" && currentLine) {
+      const used = currentLine.trains.some(t => t.kind === key);
+      if (!used) continue;
     }
+    const chip = document.createElement("div");
+    chip.className = "legend-chip";
 
-    function timeToMinutes(value) {
-      const [hour, minute] = value.split(":").map(Number);
-      return hour * 60 + minute;
+    const line = document.createElement("span");
+    line.className = "legend-line" + (m.thick ? " thick" : "");
+    line.style.background = m.color;
+
+    chip.appendChild(line);
+    chip.appendChild(document.createTextNode(m.label));
+    legendItems.appendChild(chip);
+  }
+}
+
+// ============================================================
+// 路線ロード
+// ============================================================
+function loadLine(group, key) {
+  const data   = group === "shinkansen" ? window.DIAGRAM_DATA : window.ZAIRAISEN_DATA;
+  const prefix = group === "shinkansen" ? "shinkansen_" : "zairaisen_";
+  if (!data || !data.lines || !data.lines[key]) return;
+
+  const ld = data.lines[key];
+  currentLineKey = prefix + key;
+  currentType    = group;
+  currentLine    = {
+    lineName:  ld.lineName,
+    stations:  ld.stations,
+    trains:    ld.trains,
+    startHour: ld.startHour ?? (group === "shinkansen" ? 6 : 3),
+    endHour:   ld.endHour   ?? (group === "shinkansen" ? 24 : 27),
+  };
+  highlightedTrain = null;
+
+  lineNameEl.textContent = ld.lineName;
+  applySidebarWidth(calcSidebarWidth(ld.stations));
+  resizeAll();
+  resetView();
+  renderLegend();
+  renderRouteList();
+}
+
+// ============================================================
+// ユーティリティ
+// ============================================================
+function timeToMin(t) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function startMin() { return (currentLine?.startHour ?? 6) * 60; }
+function endMin()   { return (currentLine?.endHour   ?? 24) * 60; }
+
+function xOfMin(min) {
+  return (min - startMin()) * PX_PER_MIN * view.scale + view.offsetX;
+}
+function yOfKm(km) {
+  return km * PX_PER_KM * view.scale + view.offsetY;
+}
+
+function trainColor(train) {
+  if (currentType === "shinkansen") {
+    return (SHINKANSEN_META[train.kind] || SHINKANSEN_META.kodama).color;
+  }
+  return (ZAIRAISEN_META[train.kind] || ZAIRAISEN_META.local).color;
+}
+
+function isExpressThick(train) {
+  return currentType === "zairaisen" && (ZAIRAISEN_META[train.kind] || {}).thick;
+}
+
+function calcSidebarWidth(stations) {
+  const ctx = document.createElement("canvas").getContext("2d");
+  ctx.font = `700 14px ${FONT}`;
+  let max = 0;
+  for (const st of stations) max = Math.max(max, ctx.measureText(st.name).width);
+  return Math.ceil(max) + 22;
+}
+
+function applySidebarWidth(w) {
+  document.documentElement.style.setProperty("--sidebar-w", `${w}px`);
+}
+
+function resizeCanvas(canvas, w, h) {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = Math.max(1, Math.floor(w * dpr));
+  canvas.height = Math.max(1, Math.floor(h * dpr));
+  canvas.style.width  = `${w}px`;
+  canvas.style.height = `${h}px`;
+  canvas.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function resizeAll() {
+  resizeCanvas(diagCanvas, diagramArea.clientWidth, diagramArea.clientHeight);
+  resizeCanvas(timeCanvas,  timeHeader.clientWidth, TIME_H);
+  resizeCanvas(stCanvas,    stationSidebar.clientWidth, stationSidebar.clientHeight);
+}
+
+// ============================================================
+// ビュー操作
+// ============================================================
+function clampView() {
+  const pad  = 34;
+  const cw   = (endMin() - startMin()) * PX_PER_MIN * view.scale;
+  const ch   = currentLine?.stations.at(-1)?.km * PX_PER_KM * view.scale || 0;
+  const dw   = diagramArea.clientWidth;
+  const dh   = diagramArea.clientHeight;
+
+  if (cw + pad * 2 <= dw) view.offsetX = (dw - cw) / 2;
+  else view.offsetX = Math.min(pad, Math.max(dw - cw - pad, view.offsetX));
+
+  if (ch + pad * 2 <= dh) view.offsetY = (dh - ch) / 2;
+  else view.offsetY = Math.min(pad, Math.max(dh - ch - pad, view.offsetY));
+}
+
+function resetView() {
+  view.scale   = 1;
+  view.offsetX = 24;
+  view.offsetY = 24;
+  clampView();
+  drawAll();
+}
+
+function zoom(factor, cx, cy) {
+  const ns = Math.max(view.minScale, Math.min(view.maxScale, view.scale * factor));
+  if (ns === view.scale) return;
+  const r = ns / view.scale;
+  view.offsetX = (cx ?? diagramArea.clientWidth  / 2) - ((cx ?? diagramArea.clientWidth  / 2) - view.offsetX) * r;
+  view.offsetY = (cy ?? diagramArea.clientHeight / 2) - ((cy ?? diagramArea.clientHeight / 2) - view.offsetY) * r;
+  view.scale = ns;
+  clampView();
+  drawAll();
+}
+
+// ============================================================
+// 描画: 時間ヘッダー（スマホスクロール対応）
+// ============================================================
+function drawTimeHeader() {
+  const w = timeCanvas.clientWidth;
+  timeCtx.clearRect(0, 0, w, TIME_H);
+  timeCtx.fillStyle = "rgba(7,17,33,0.95)";
+  timeCtx.fillRect(0, 0, w, TIME_H);
+
+  if (!currentLine) return;
+
+  const sMin = startMin();
+  const eMin = endMin();
+
+  for (let min = sMin; min <= eMin; min += 2) {
+    const x = xOfMin(min);
+    if (x < -60 || x > w + 60) continue;
+    const moh = min % 60;
+    if (moh === 0) {
+      // 整時ラベル（固定表示対応は後段で上書き）
+      timeCtx.fillStyle = "rgba(236,240,241,0.96)";
+      timeCtx.font = `800 22px ${FONT}`;
+      timeCtx.textAlign = "center";
+      timeCtx.textBaseline = "middle";
+      timeCtx.fillText(String(Math.floor(min / 60)), x, 22);
+    } else if (moh % 10 === 0) {
+      timeCtx.fillStyle = "rgba(159,184,214,0.9)";
+      timeCtx.font = `11px ${FONT}`;
+      timeCtx.textAlign = "center";
+      timeCtx.textBaseline = "middle";
+      timeCtx.fillText(String(moh), x, 40);
     }
+  }
 
-    function trainMetaByKind(kind) {
-      return TRAIN_META[kind] || { label: kind, color: "#ffffff" };
+  // 整時ラベルの左端固定表示
+  // 画面左端より左にある整時 → 固定表示
+  for (let h = Math.floor(sMin / 60); h <= Math.floor(eMin / 60); h++) {
+    const min = h * 60;
+    const x   = xOfMin(min);
+
+    // 次の整時のx座標
+    const xNext = xOfMin((h + 1) * 60);
+
+    // この整時が画面外（左）にある かつ 次の整時がまだ表示領域内
+    if (x < 0 && xNext > 0) {
+      // 固定: 左端に表示、次の整時が画面内に入ったら自然消滅
+      const displayX = Math.max(0, Math.min(xNext - 30, 20));
+      timeCtx.fillStyle = "rgba(236,240,241,0.96)";
+      timeCtx.font = `800 22px ${FONT}`;
+      timeCtx.textAlign = "center";
+      timeCtx.textBaseline = "middle";
+      timeCtx.fillText(String(h), displayX, 22);
     }
+  }
 
-    function trainColor(train) {
-      return trainMetaByKind(train.kind).color;
+  // 下ボーダー
+  timeCtx.strokeStyle = "rgba(117,144,184,0.25)";
+  timeCtx.lineWidth = 1;
+  timeCtx.beginPath();
+  timeCtx.moveTo(0, TIME_H - 0.5);
+  timeCtx.lineTo(w, TIME_H - 0.5);
+  timeCtx.stroke();
+}
+
+// ============================================================
+// 描画: 駅サイドバー
+// ============================================================
+function drawStationSidebar() {
+  const w = stCanvas.clientWidth;
+  const h = stCanvas.clientHeight;
+  stCtx.clearRect(0, 0, w, h);
+  stCtx.fillStyle = "rgba(7,17,33,0.95)";
+  stCtx.fillRect(0, 0, w, h);
+
+  if (!currentLine) return;
+
+  const sf = Math.max(10, Math.min(14, 14 / Math.sqrt(Math.max(view.scale, 0.8))));
+  const kf = Math.max(8,  Math.min(11, 11 / Math.sqrt(Math.max(view.scale, 0.8))));
+
+  for (const st of currentLine.stations) {
+    const y = yOfKm(st.km);
+    if (y < -28 || y > h + 28) continue;
+
+    stCtx.fillStyle = "#ecf0f1";
+    stCtx.font = `700 ${sf}px ${FONT}`;
+    stCtx.textAlign = "right";
+    stCtx.textBaseline = "middle";
+    stCtx.fillText(st.name, w - 8, y - 5);
+
+    if (view.scale >= 0.6) {
+      stCtx.fillStyle = "#7ec8e3";
+      stCtx.font = `${kf}px ${FONT}`;
+      stCtx.fillText(`${st.km.toFixed(1)} km`, w - 8, y + 9);
     }
+  }
 
-    function calcSidebarWidth(stations) {
-      const ctx = document.createElement("canvas").getContext("2d");
-      let maxWidth = 0;
-      for (const station of stations) {
-        ctx.font = "700 14px 'Avenir Next', 'Hiragino Sans', sans-serif";
-        maxWidth = Math.max(maxWidth, ctx.measureText(station.name).width);
-        ctx.font = "11px 'Avenir Next', 'Hiragino Sans', sans-serif";
-        maxWidth = Math.max(maxWidth, ctx.measureText(`${station.km.toFixed(1)} km`).width);
+  stCtx.strokeStyle = "rgba(117,144,184,0.25)";
+  stCtx.lineWidth = 1;
+  stCtx.beginPath();
+  stCtx.moveTo(w - 0.5, 0);
+  stCtx.lineTo(w - 0.5, h);
+  stCtx.stroke();
+}
+
+// ============================================================
+// 描画: ダイヤグラム
+// ============================================================
+function drawDiagram() {
+  const w = diagCanvas.clientWidth;
+  const h = diagCanvas.clientHeight;
+  diagCtx.clearRect(0, 0, w, h);
+  diagCtx.fillStyle = "#0a1424";
+  diagCtx.fillRect(0, 0, w, h);
+
+  if (!currentLine) return;
+
+  const sMin = startMin();
+  const eMin = endMin();
+
+  // ---- 時間グリッド線（明るく） ----
+  for (let min = sMin; min <= eMin; min += 2) {
+    const x   = xOfMin(min);
+    if (x < 0 || x > w) continue;
+    const moh = min % 60;
+
+    diagCtx.beginPath();
+    diagCtx.moveTo(x, 0);
+    diagCtx.lineTo(x, h);
+
+    if (moh === 0) {
+      diagCtx.strokeStyle = "rgba(236,240,241,0.55)";
+      diagCtx.lineWidth   = 1.5;
+      diagCtx.setLineDash([]);
+    } else if (moh % 10 === 0) {
+      diagCtx.strokeStyle = "rgba(180,210,250,0.55)";
+      diagCtx.lineWidth   = 0.9;
+      diagCtx.setLineDash([]);
+    } else {
+      diagCtx.strokeStyle = "rgba(160,195,240,0.42)";
+      diagCtx.lineWidth   = 0.7;
+      diagCtx.setLineDash([2, 3]);
+    }
+    diagCtx.stroke();
+  }
+  diagCtx.setLineDash([]);
+
+  // ---- 駅横線 ----
+  // 新幹線: のぞみ停車駅 = 太線
+  // 在来線: 特急停車駅 = 太線 (特急なければ快速停車駅)
+  const thickStations = new Set();
+  const fallbackStations = new Set();
+
+  if (currentType === "shinkansen") {
+    for (const train of currentLine.trains) {
+      if (train.kind === "nozomi") {
+        for (const s of train.stops) thickStations.add(s.si);
       }
-      return Math.ceil(maxWidth) + 22;
+    }
+  } else {
+    const hasExpress = currentLine.trains.some(t => t.kind === "express");
+    for (const train of currentLine.trains) {
+      if (train.kind === "express") {
+        for (const s of train.stops) thickStations.add(s.si);
+      }
+      if (!hasExpress && (train.kind === "rapid" || train.kind === "rapid_local" ||
+          train.kind === "rapid_new" || train.kind === "rapid_special")) {
+        for (const s of train.stops) fallbackStations.add(s.si);
+      }
+    }
+    if (!hasExpress) {
+      for (const si of fallbackStations) thickStations.add(si);
+    }
+  }
+
+  for (let i = 0; i < currentLine.stations.length; i++) {
+    const y = yOfKm(currentLine.stations[i].km);
+    if (y < 0 || y > h) continue;
+    if (thickStations.has(i)) {
+      diagCtx.strokeStyle = "rgba(220,235,255,0.48)";
+      diagCtx.lineWidth   = 1.2;
+    } else {
+      diagCtx.strokeStyle = "rgba(180,200,225,0.20)";
+      diagCtx.lineWidth   = 0.7;
+    }
+    diagCtx.beginPath();
+    diagCtx.moveTo(0, y);
+    diagCtx.lineTo(w, y);
+    diagCtx.stroke();
+  }
+
+  // ---- 列車線 ----
+  const baseLineW  = Math.max(0.8, Math.min(2, 1.4 / Math.sqrt(view.scale)));
+  const shouldLabel = view.scale >= 0.4;
+
+  // キャッシュ: ハロ判定用に各列車の描画セグメントを保持
+  const trainSegments = [];
+
+  for (let ti = 0; ti < currentLine.trains.length; ti++) {
+    const train = currentLine.trains[ti];
+    const stops = train.stops.filter(s => currentLine.stations[s.si]);
+    if (stops.length < 2) continue;
+
+    const color  = trainColor(train);
+    const isHL   = highlightedTrain === ti;
+    const lw     = isExpressThick(train) ? baseLineW * 2.2 : baseLineW;
+
+    if (isHL) {
+      // グロー効果
+      diagCtx.save();
+      diagCtx.strokeStyle = color;
+      diagCtx.lineWidth   = lw + 6;
+      diagCtx.globalAlpha = 0.22;
+      diagCtx.shadowColor = color;
+      diagCtx.shadowBlur  = 14;
+      drawTrainPath(diagCtx, stops);
+      diagCtx.stroke();
+      diagCtx.restore();
     }
 
-    function applySidebarWidth(width) {
-      sidebarWidth = width;
-      document.documentElement.style.setProperty("--sidebar-w", `${width}px`);
+    diagCtx.strokeStyle = isHL ? "#ffffff" : color;
+    diagCtx.lineWidth   = isHL ? lw + 1.5 : lw;
+    diagCtx.globalAlpha = (highlightedTrain !== null && !isHL) ? 0.3 : 1.0;
+    diagCtx.setLineDash([]);
+    drawTrainPath(diagCtx, stops);
+    diagCtx.stroke();
+    diagCtx.globalAlpha = 1.0;
+
+    // セグメント収集（ヒットテスト用）
+    const segs = buildSegments(stops);
+    trainSegments.push({ ti, color, segs });
+
+    // ---- 列車番号ラベル ----
+    if (!shouldLabel) continue;
+
+    const trainNo = train.trainNo || (train.trainLabel ? train.trainLabel + train.trainNo : null);
+    const label   = currentType === "shinkansen"
+      ? ((train.trainLabel || "") + (train.trainNo || ""))
+      : (train.trainNo || "");
+    if (!label) continue;
+
+    // ハロ表示中 → 画面内最初のセグメントに表示
+    if (isHL) {
+      drawLabelOnFirstVisibleSegment(diagCtx, segs, label, color, w);
+    } else {
+      drawLabelOnFirstSegment(diagCtx, segs, label, color);
+    }
+  }
+
+  // ---- ハロ列車の再前面描画（他の線の上に来るよう）----
+  // (上のループで既に描画済みなので省略)
+}
+
+// 列車パスを ctx に描く（stroke なし）
+function drawTrainPath(ctx, stops) {
+  ctx.beginPath();
+  let first = true;
+  for (const s of stops) {
+    const st  = currentLine.stations[s.si];
+    const y   = yOfKm(st.km);
+    const arr = s.arr || s.dep || s.t;
+    const dep = s.dep || s.arr || s.t;
+    if (!arr) continue;
+    const xArr = xOfMin(timeToMin(arr));
+    const xDep = xOfMin(timeToMin(dep));
+    if (first) { ctx.moveTo(xArr, y); first = false; }
+    else        { ctx.lineTo(xArr, y); }
+    if (xDep > xArr) ctx.lineTo(xDep, y);
+  }
+}
+
+// 列車の各セグメントを配列で返す [{x0,y0,x1,y1}, ...]
+function buildSegments(stops) {
+  const segs = [];
+  let prevDep = null;
+  for (const s of stops) {
+    const st  = currentLine.stations[s.si];
+    if (!st) continue;
+    const y   = yOfKm(st.km);
+    const arr = s.arr || s.dep || s.t;
+    const dep = s.dep || s.arr || s.t;
+    if (!arr) continue;
+    const xArr = xOfMin(timeToMin(arr));
+    const xDep = xOfMin(timeToMin(dep));
+    if (prevDep !== null) segs.push({ x0: prevDep.x, y0: prevDep.y, x1: xArr, y1: y });
+    prevDep = { x: xDep, y };
+  }
+  return segs;
+}
+
+// 先頭セグメント（画面内の最初のもの）にラベルを描画
+function drawLabelOnFirstSegment(ctx, segs, label, color) {
+  for (const seg of segs) {
+    const len = Math.hypot(seg.x1 - seg.x0, seg.y1 - seg.y0);
+    if (len < 24) continue;
+    const angle = Math.atan2(seg.y1 - seg.y0, seg.x1 - seg.x0);
+    const px = seg.x0 + Math.cos(angle) * 10;
+    const py = seg.y0 + Math.sin(angle) * 10;
+    const size = Math.max(7, Math.min(11, 9 / Math.sqrt(Math.max(view.scale, 0.65))));
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(angle);
+    ctx.fillStyle = color;
+    ctx.font = `700 ${size}px ${FONT}`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "bottom";
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur  = 5;
+    ctx.fillText(label, 0, -2);
+    ctx.restore();
+    break;
+  }
+}
+
+// ハロ列車: 画面内で最初に見えるセグメントにラベルを表示
+function drawLabelOnFirstVisibleSegment(ctx, segs, label, color, canvasW) {
+  const canvasH = diagCanvas.clientHeight;
+  for (const seg of segs) {
+    // セグメントが画面内に少しでも入っているか確認
+    const minX = Math.min(seg.x0, seg.x1);
+    const maxX = Math.max(seg.x0, seg.x1);
+    if (maxX < 0 || minX > canvasW) continue;
+
+    const len = Math.hypot(seg.x1 - seg.x0, seg.y1 - seg.y0);
+    if (len < 12) continue;
+
+    const angle = Math.atan2(seg.y1 - seg.y0, seg.x1 - seg.x0);
+
+    // x0が画面外（左）の場合、交点を計算
+    let startX = seg.x0;
+    let startY = seg.y0;
+    if (seg.x0 < 0 && seg.x1 > 0) {
+      // y = y0 + (y1-y0)/(x1-x0) * (0 - x0)
+      startX = 0;
+      startY = seg.y0 + (seg.y1 - seg.y0) / (seg.x1 - seg.x0) * (0 - seg.x0);
     }
 
-    function resizeCanvas(canvas, width, height) {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = Math.max(1, Math.floor(width * dpr));
-      canvas.height = Math.max(1, Math.floor(height * dpr));
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      const ctx = canvas.getContext("2d");
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const px = Math.max(4, startX + Math.cos(angle) * 6);
+    const py = startY + Math.sin(angle) * 6;
+    const size = Math.max(8, Math.min(13, 11 / Math.sqrt(Math.max(view.scale, 0.65))));
+
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(angle);
+
+    // 背景帯
+    const metrics = ctx.measureText(label);
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillRect(-3, -(size + 3), metrics.width + 6, size + 4);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `900 ${size}px ${FONT}`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "bottom";
+    ctx.fillText(label, 0, -1);
+    ctx.restore();
+    break;
+  }
+}
+
+function drawAll() {
+  drawDiagram();
+  drawTimeHeader();
+  drawStationSidebar();
+}
+
+// ============================================================
+// 列車タップ（ハロ）
+// ============================================================
+const HIT_THRESH = 6; // px
+
+function findTrainAtPoint(px, py) {
+  if (!currentLine) return null;
+  const baseLineW = Math.max(0.8, Math.min(2, 1.4 / Math.sqrt(view.scale)));
+
+  for (let ti = currentLine.trains.length - 1; ti >= 0; ti--) {
+    const train = currentLine.trains[ti];
+    const stops = train.stops.filter(s => currentLine.stations[s.si]);
+    if (stops.length < 2) continue;
+
+    const lw    = (isExpressThick(train) ? baseLineW * 2.2 : baseLineW) + HIT_THRESH;
+    const segs  = buildSegments(stops);
+
+    for (const seg of segs) {
+      if (distToSegment(px, py, seg.x0, seg.y0, seg.x1, seg.y1) <= lw) return ti;
     }
-
-    function resizeAll() {
-      resizeCanvas(diagramCanvas, diagramArea.clientWidth, diagramArea.clientHeight);
-      resizeCanvas(timeCanvas, timeHeader.clientWidth, HEADER_H);
-      resizeCanvas(stationCanvas, sidebarWidth, stationSidebar.clientHeight);
+    // 停車横線
+    for (const s of stops) {
+      const st = currentLine.stations[s.si];
+      if (!st) continue;
+      const y   = yOfKm(st.km);
+      const arr = s.arr || s.dep || s.t;
+      const dep = s.dep || s.arr || s.t;
+      if (!arr) continue;
+      const xa  = xOfMin(timeToMin(arr));
+      const xd  = xOfMin(timeToMin(dep));
+      if (xd > xa && distToSegment(px, py, xa, y, xd, y) <= lw) return ti;
     }
+  }
+  return null;
+}
 
-    function xOfMinute(minute) {
-      return (minute - DISPLAY_START_MIN) * PX_PER_MIN * view.scale + view.offsetX;
+function distToSegment(px, py, x0, y0, x1, y1) {
+  const dx = x1 - x0, dy = y1 - y0;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return Math.hypot(px - x0, py - y0);
+  const t = Math.max(0, Math.min(1, ((px - x0) * dx + (py - y0) * dy) / lenSq));
+  return Math.hypot(px - (x0 + t * dx), py - (y0 + t * dy));
+}
+
+// ============================================================
+// マウス操作
+// ============================================================
+let isDragging = false, lastX = 0, lastY = 0, dragMoved = false;
+
+diagramArea.addEventListener("mousedown", (e) => {
+  isDragging = true; dragMoved = false;
+  lastX = e.clientX; lastY = e.clientY;
+});
+
+window.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragMoved = true;
+  view.offsetX += dx; view.offsetY += dy;
+  lastX = e.clientX; lastY = e.clientY;
+  clampView(); drawAll();
+});
+
+window.addEventListener("mouseup", (e) => {
+  if (isDragging && !dragMoved) {
+    const rect = diagramArea.getBoundingClientRect();
+    const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    const ti = findTrainAtPoint(px, py);
+    if (ti !== null) {
+      highlightedTrain = (highlightedTrain === ti) ? null : ti;
+    } else {
+      highlightedTrain = null;
     }
+    drawAll();
+  }
+  isDragging = false;
+});
 
-    function yOfKm(km) {
-      return km * PX_PER_KM * view.scale + view.offsetY;
-    }
+diagramArea.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const rect = diagramArea.getBoundingClientRect();
+  zoom(e.deltaY < 0 ? 1.12 : 0.9, e.clientX - rect.left, e.clientY - rect.top);
+}, { passive: false });
 
-    function contentWidth() {
-      return (DISPLAY_END_MIN - DISPLAY_START_MIN) * PX_PER_MIN * view.scale;
-    }
+// ============================================================
+// タッチ操作
+// ============================================================
+let touchArr = [], pinchDist = 0, pinchMid = null, touchMoved = false;
+let lastTapTime = 0, lastTapPos = null;
 
-    function contentHeight() {
-      return currentLine && currentLine.stations.length
-        ? currentLine.stations.at(-1).km * PX_PER_KM * view.scale
-        : 0;
-    }
+function getTouchDist(ts) {
+  const dx = ts[0].clientX - ts[1].clientX, dy = ts[0].clientY - ts[1].clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+function getTouchMid(ts) {
+  return { x: (ts[0].clientX + ts[1].clientX) / 2, y: (ts[0].clientY + ts[1].clientY) / 2 };
+}
 
-    function clampView() {
-      const padding = 34;
-      const width = contentWidth();
-      const height = contentHeight();
+diagramArea.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  touchArr = Array.from(e.touches); touchMoved = false;
+  if (touchArr.length === 2) {
+    pinchDist = getTouchDist(touchArr);
+    pinchMid  = getTouchMid(touchArr);
+  } else if (touchArr.length === 1) {
+    lastX = touchArr[0].clientX; lastY = touchArr[0].clientY;
+  }
+}, { passive: false });
 
-      if (width + padding * 2 <= diagramCanvas.clientWidth) {
-        view.offsetX = (diagramCanvas.clientWidth - width) / 2;
+diagramArea.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  const ts   = Array.from(e.touches);
+  const rect = diagramArea.getBoundingClientRect();
+  if (ts.length === 2 && touchArr.length === 2) {
+    const nd = getTouchDist(ts), nm = getTouchMid(ts);
+    if (pinchDist > 0) zoom(nd / pinchDist, nm.x - rect.left, nm.y - rect.top);
+    view.offsetX += nm.x - pinchMid.x;
+    view.offsetY += nm.y - pinchMid.y;
+    pinchDist = nd; pinchMid = nm;
+    touchMoved = true;
+  } else if (ts.length === 1) {
+    const dx = ts[0].clientX - lastX, dy = ts[0].clientY - lastY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) touchMoved = true;
+    view.offsetX += dx; view.offsetY += dy;
+    lastX = ts[0].clientX; lastY = ts[0].clientY;
+  }
+  touchArr = ts; clampView(); drawAll();
+}, { passive: false });
+
+diagramArea.addEventListener("touchend", (e) => {
+  const rect    = diagramArea.getBoundingClientRect();
+  const ended   = Array.from(e.changedTouches);
+  touchArr = Array.from(e.touches);
+
+  if (touchArr.length === 0 && ended.length === 1 && !touchMoved) {
+    const tap = ended[0];
+    const now = Date.now();
+    const px  = tap.clientX - rect.left;
+    const py  = tap.clientY - rect.top;
+
+    // ダブルタップ→ズーム
+    if (lastTapPos && now - lastTapTime < 280 &&
+        Math.hypot(tap.clientX - lastTapPos.x, tap.clientY - lastTapPos.y) < 28) {
+      zoom(1.35, px, py);
+      lastTapTime = 0; lastTapPos = null;
+    } else {
+      // ハロ判定
+      const ti = findTrainAtPoint(px, py);
+      if (ti !== null) {
+        highlightedTrain = (highlightedTrain === ti) ? null : ti;
       } else {
-        const minX = diagramCanvas.clientWidth - width - padding;
-        view.offsetX = Math.min(padding, Math.max(minX, view.offsetX));
+        highlightedTrain = null;
       }
-
-      if (height + padding * 2 <= diagramCanvas.clientHeight) {
-        view.offsetY = (diagramCanvas.clientHeight - height) / 2;
-      } else {
-        const minY = diagramCanvas.clientHeight - height - padding;
-        view.offsetY = Math.min(padding, Math.max(minY, view.offsetY));
-      }
-    }
-
-    function resetView() {
-      view.scale = 1;
-      view.offsetX = 24;
-      view.offsetY = 24;
-      clampView();
       drawAll();
+      lastTapTime = now; lastTapPos = { x: tap.clientX, y: tap.clientY };
     }
+  }
+  if (touchArr.length < 2) { pinchDist = 0; pinchMid = null; }
+});
 
-    function zoom(factor, cx, cy) {
-      const newScale = Math.max(view.minScale, Math.min(view.maxScale, view.scale * factor));
-      if (newScale === view.scale) return;
-      const centerX = cx == null ? diagramArea.clientWidth / 2 : cx;
-      const centerY = cy == null ? diagramArea.clientHeight / 2 : cy;
-      const ratio = newScale / view.scale;
-      view.offsetX = centerX - (centerX - view.offsetX) * ratio;
-      view.offsetY = centerY - (centerY - view.offsetY) * ratio;
-      view.scale = newScale;
-      clampView();
-      drawAll();
-    }
+// ============================================================
+// リサイズ
+// ============================================================
+window.addEventListener("resize", () => {
+  if (!currentLine) return;
+  resizeAll(); clampView(); drawAll();
+});
 
-    function drawTimeHeader() {
-      const width = timeCanvas.clientWidth;
-      timeCtx.clearRect(0, 0, width, HEADER_H);
-      timeCtx.fillStyle = "rgba(7, 17, 33, 0.95)";
-      timeCtx.fillRect(0, 0, width, HEADER_H);
+// ============================================================
+// 初期化
+// ============================================================
+async function initialize() {
+  const shin = window.DIAGRAM_DATA;
+  const zai  = window.ZAIRAISEN_DATA;
 
-      for (let minute = DISPLAY_START_MIN; minute <= DISPLAY_END_MIN; minute += 2) {
-        const x = xOfMinute(minute);
-        if (x < -60 || x > width + 60) continue;
-        const minuteOfHour = minute % 60;
+  if (!shin || !shin.lines) {
+    loadingDetEl.textContent =
+      "新幹線データが見つかりません。\nbun fetch-diagram.ts を実行してください。";
+    return;
+  }
+  if (!zai || !zai.lines) {
+    loadingDetEl.textContent =
+      "在来線データが見つかりません。\nzairaisen-data.js を確認してください。";
+    return;
+  }
 
-        if (minuteOfHour === 0) {
-          timeCtx.fillStyle = "rgba(236, 240, 241, 0.96)";
-          timeCtx.font = "800 22px 'Avenir Next', 'Hiragino Sans', sans-serif";
-          timeCtx.textAlign = "center";
-          timeCtx.textBaseline = "middle";
-          timeCtx.fillText(String(Math.floor(minute / 60)), x, 22);
-        } else if (minuteOfHour % 10 === 0) {
-          timeCtx.fillStyle = "rgba(159, 184, 214, 0.9)";
-          timeCtx.font = "11px 'Avenir Next', 'Hiragino Sans', sans-serif";
-          timeCtx.textAlign = "center";
-          timeCtx.textBaseline = "middle";
-          timeCtx.fillText(String(minuteOfHour), x, 38);
-        }
-      }
+  // 最初のロード: 新幹線のデフォルト路線
+  const defaultKey = Object.keys(shin.lines)[0] || "tokyo_hakata";
+  loadLine("shinkansen", defaultKey);
 
-      timeCtx.strokeStyle = "rgba(117, 144, 184, 0.25)";
-      timeCtx.lineWidth = 1;
-      timeCtx.beginPath();
-      timeCtx.moveTo(0, HEADER_H - 0.5);
-      timeCtx.lineTo(width, HEADER_H - 0.5);
-      timeCtx.stroke();
-    }
+  loadingEl.classList.add("hidden");
+}
 
-    function drawStationSidebar() {
-      const width = stationCanvas.clientWidth;
-      const height = stationCanvas.clientHeight;
-      stationCtx.clearRect(0, 0, width, height);
-      stationCtx.fillStyle = "rgba(7, 17, 33, 0.95)";
-      stationCtx.fillRect(0, 0, width, height);
-      if (!currentLine) return;
-
-      const stationFont = Math.max(10, Math.min(14, 14 / Math.sqrt(Math.max(view.scale, 0.8))));
-      const kmFont = Math.max(8, Math.min(11, 11 / Math.sqrt(Math.max(view.scale, 0.8))));
-
-      for (const station of currentLine.stations) {
-        const y = yOfKm(station.km);
-        if (y < -28 || y > height + 28) continue;
-
-        stationCtx.fillStyle = "#ecf0f1";
-        stationCtx.font = `700 ${stationFont}px 'Avenir Next', 'Hiragino Sans', sans-serif`;
-        stationCtx.textAlign = "right";
-        stationCtx.textBaseline = "middle";
-        stationCtx.fillText(station.name, width - 8, y - 5);
-
-        if (view.scale >= 0.6) {
-          stationCtx.fillStyle = "#7ec8e3";
-          stationCtx.font = `${kmFont}px 'Avenir Next', 'Hiragino Sans', sans-serif`;
-          stationCtx.fillText(`${station.km.toFixed(1)} km`, width - 8, y + 10);
-        }
-      }
-
-      stationCtx.strokeStyle = "rgba(117, 144, 184, 0.25)";
-      stationCtx.lineWidth = 1;
-      stationCtx.beginPath();
-      stationCtx.moveTo(width - 0.5, 0);
-      stationCtx.lineTo(width - 0.5, height);
-      stationCtx.stroke();
-    }
-
-    function drawDiagram() {
-      const width = diagramCanvas.clientWidth;
-      const height = diagramCanvas.clientHeight;
-      diagramCtx.clearRect(0, 0, width, height);
-      diagramCtx.fillStyle = "#0a1424";
-      diagramCtx.fillRect(0, 0, width, height);
-      if (!currentLine) return;
-
-      for (let minute = DISPLAY_START_MIN; minute <= DISPLAY_END_MIN; minute += 2) {
-        const x = xOfMinute(minute);
-        if (x < 0 || x > width) continue;
-        const minuteOfHour = minute % 60;
-        diagramCtx.beginPath();
-        diagramCtx.moveTo(x, 0);
-        diagramCtx.lineTo(x, height);
-
-        if (minuteOfHour === 0) {
-          diagramCtx.strokeStyle = "rgba(236, 240, 241, 0.45)";
-          diagramCtx.lineWidth = 1.5;
-          diagramCtx.setLineDash([]);
-        } else if (minuteOfHour % 10 === 0) {
-          diagramCtx.strokeStyle = "rgba(160, 190, 230, 0.45)";
-          diagramCtx.lineWidth = 0.8;
-          diagramCtx.setLineDash([]);
-        } else {
-          diagramCtx.strokeStyle = "rgba(140, 170, 210, 0.32)";
-          diagramCtx.lineWidth = 0.7;
-          diagramCtx.setLineDash([2, 3]);
-        }
-        diagramCtx.stroke();
-      }
-      diagramCtx.setLineDash([]);
-
-      for (const [i, station] of currentLine.stations.entries()) {
-        const y = yOfKm(station.km);
-        if (y < 0 || y > height) continue;
-        if (nozomiStationSet.has(i)) {
-          diagramCtx.strokeStyle = "rgba(220, 235, 255, 0.42)";
-          diagramCtx.lineWidth = 1.2;
-        } else {
-          diagramCtx.strokeStyle = "rgba(180, 200, 225, 0.18)";
-          diagramCtx.lineWidth = 0.7;
-        }
-        diagramCtx.beginPath();
-        diagramCtx.moveTo(0, y);
-        diagramCtx.lineTo(width, y);
-        diagramCtx.stroke();
-      }
-
-      const lineWidth = Math.max(0.8, Math.min(2, 1.4 / Math.sqrt(view.scale)));
-      const shouldLabel = view.scale >= 0.4;
-
-      for (const train of currentLine.trains) {
-        const stops = train.stops.filter((stop) => currentLine.stations[stop.si]);
-        if (stops.length < 2) continue;
-
-        diagramCtx.strokeStyle = trainColor(train);
-        diagramCtx.lineWidth = lineWidth;
-        diagramCtx.beginPath();
-
-        let started = false;
-        for (const stop of stops) {
-          const station = currentLine.stations[stop.si];
-          const y = yOfKm(station.km);
-          const arr = stop.arr || stop.dep;
-          const dep = stop.dep || stop.arr;
-          if (!arr || !dep) continue;
-
-          const xArr = xOfMinute(timeToMinutes(arr));
-          const xDep = xOfMinute(timeToMinutes(dep));
-          if (!started) {
-            diagramCtx.moveTo(xArr, y);
-            started = true;
-          } else {
-            diagramCtx.lineTo(xArr, y);
-          }
-          if (xDep > xArr) diagramCtx.lineTo(xDep, y);
-        }
-        diagramCtx.stroke();
-
-        if (!shouldLabel) continue;
-
-        let segment = null;
-        for (let i = 0; i < stops.length - 1; i++) {
-          const from = stops[i];
-          const to = stops[i + 1];
-          const fromTime = from.dep || from.arr;
-          const toTime = to.arr || to.dep;
-          if (!fromTime || !toTime) continue;
-          const x0 = xOfMinute(timeToMinutes(fromTime));
-          const y0 = yOfKm(currentLine.stations[from.si].km);
-          const x1 = xOfMinute(timeToMinutes(toTime));
-          const y1 = yOfKm(currentLine.stations[to.si].km);
-          if (Math.hypot(x1 - x0, y1 - y0) < 24) continue;
-          segment = { x0, y0, x1, y1 };
-          break;
-        }
-        if (!segment) continue;
-
-        const angle = Math.atan2(segment.y1 - segment.y0, segment.x1 - segment.x0);
-        const text = `${train.trainLabel}${train.trainNo}`;
-        const size = Math.max(7, Math.min(11, 9 / Math.sqrt(Math.max(view.scale, 0.65))));
-        const px = segment.x0 + Math.cos(angle) * 10;
-        const py = segment.y0 + Math.sin(angle) * 10;
-
-        diagramCtx.save();
-        diagramCtx.translate(px, py);
-        diagramCtx.rotate(angle);
-        diagramCtx.fillStyle = trainColor(train);
-        diagramCtx.font = `700 ${size}px 'Avenir Next', 'Hiragino Sans', sans-serif`;
-        diagramCtx.textAlign = "left";
-        diagramCtx.textBaseline = "bottom";
-        diagramCtx.shadowColor = "rgba(0, 0, 0, 0.55)";
-        diagramCtx.shadowBlur = 6;
-        diagramCtx.fillText(text, 0, -2);
-        diagramCtx.restore();
-      }
-    }
-
-    function drawAll() {
-      drawDiagram();
-      drawTimeHeader();
-      drawStationSidebar();
-    }
-
-    function renderLegend() {
-      legendRowsEl.innerHTML = "";
-      for (const key of ["nozomi", "hikari", "kodama", "mizuho", "sakura"]) {
-        const meta = TRAIN_META[key];
-        const row = document.createElement("div");
-        row.className = "legend-row";
-        row.innerHTML = `<span class="legend-sample" style="background:${meta.color}"></span><span>${meta.label}</span>`;
-        legendRowsEl.appendChild(row);
-      }
-    }
-
-    function updateMeta() {
-      fetchedAtEl.textContent = `取得時刻: ${diagramData.fetchedAt || "-"}`;
-      sourceNoteEl.textContent = `データソース: ${diagramData.source || "-"}`;
-    }
-
-    function loadLine(key) {
-      if (!diagramData || !diagramData.lines || !diagramData.lines[key]) return;
-      currentLine = diagramData.lines[key];
-      lineNameDisplay.textContent = currentLine.lineName;
-      lineNameDisplay.textContent = currentLine.lineName;
-      nozomiStationSet = new Set();
-      for (const train of currentLine.trains) {
-        if (train.kind === "nozomi") {
-          for (const stop of train.stops) nozomiStationSet.add(stop.si);
-        }
-      }
-      applySidebarWidth(calcSidebarWidth(currentLine.stations));
-      resizeAll();
-      resetView();
-    }
-
-    let mouseDragging = false;
-    let lastX = 0;
-    let lastY = 0;
-
-    diagramArea.addEventListener("mousedown", (event) => {
-      mouseDragging = true;
-      lastX = event.clientX;
-      lastY = event.clientY;
-    });
-
-    window.addEventListener("mousemove", (event) => {
-      if (!mouseDragging) return;
-      view.offsetX += event.clientX - lastX;
-      view.offsetY += event.clientY - lastY;
-      lastX = event.clientX;
-      lastY = event.clientY;
-      clampView();
-      drawAll();
-    });
-
-    window.addEventListener("mouseup", () => {
-      mouseDragging = false;
-    });
-
-    diagramArea.addEventListener("wheel", (event) => {
-      event.preventDefault();
-      const rect = diagramArea.getBoundingClientRect();
-      zoom(event.deltaY < 0 ? 1.12 : 0.9, event.clientX - rect.left, event.clientY - rect.top);
-    }, { passive: false });
-
-    let touchMode = [];
-    let pinchDistance = 0;
-    let pinchMidpoint = null;
-
-    function touchDistance(touches) {
-      const dx = touches[0].clientX - touches[1].clientX;
-      const dy = touches[0].clientY - touches[1].clientY;
-      return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    function touchMidpoint(touches) {
-      return {
-        x: (touches[0].clientX + touches[1].clientX) / 2,
-        y: (touches[0].clientY + touches[1].clientY) / 2
-      };
-    }
-
-    diagramArea.addEventListener("touchstart", (event) => {
-      event.preventDefault();
-      touchMode = Array.from(event.touches);
-      if (touchMode.length === 2) {
-        pinchDistance = touchDistance(touchMode);
-        pinchMidpoint = touchMidpoint(touchMode);
-      } else if (touchMode.length === 1) {
-        lastX = touchMode[0].clientX;
-        lastY = touchMode[0].clientY;
-      }
-    }, { passive: false });
-
-    diagramArea.addEventListener("touchmove", (event) => {
-      event.preventDefault();
-      const touches = Array.from(event.touches);
-      const rect = diagramArea.getBoundingClientRect();
-
-      if (touches.length === 2 && touchMode.length === 2) {
-        const nextDistance = touchDistance(touches);
-        const nextMidpoint = touchMidpoint(touches);
-        if (pinchDistance > 0) {
-          zoom(nextDistance / pinchDistance, nextMidpoint.x - rect.left, nextMidpoint.y - rect.top);
-        }
-        view.offsetX += nextMidpoint.x - pinchMidpoint.x;
-        view.offsetY += nextMidpoint.y - pinchMidpoint.y;
-        pinchDistance = nextDistance;
-        pinchMidpoint = nextMidpoint;
-      } else if (touches.length === 1) {
-        view.offsetX += touches[0].clientX - lastX;
-        view.offsetY += touches[0].clientY - lastY;
-        lastX = touches[0].clientX;
-        lastY = touches[0].clientY;
-      }
-
-      touchMode = touches;
-      clampView();
-      drawAll();
-    }, { passive: false });
-
-    diagramArea.addEventListener("touchend", (event) => {
-      touchMode = Array.from(event.touches);
-      if (touchMode.length < 2) {
-        pinchDistance = 0;
-        pinchMidpoint = null;
-      }
-    });
-
-
-    window.addEventListener("resize", () => {
-      if (!currentLine) return;
-      resizeAll();
-      clampView();
-      drawAll();
-    });
-
-    async function initialize() {
-      renderLegend();
-      try {
-        if (window.DIAGRAM_DATA && window.DIAGRAM_DATA.lines) {
-          currentSource = "local";
-          diagramData = window.DIAGRAM_DATA;
-          setLoading(`ローカルデータを読み込みました\n${Object.keys(diagramData.lines).length}ビュー / ${Object.values(diagramData.lines).reduce((sum, line) => sum + line.trains.length, 0)}列車`);
-        } else {
-          throw new Error("diagram-data.js がありません。サーバー負荷を避けるため、ブラウザからの全件取得は行いません。先に `bun fetch-diagram.ts` を実行してください。");
-        }
-
-        updateMeta();
-
-        const defaultKey = "tokyo_hakata";
-        loadLine(defaultKey);
-        loadingEl.classList.add("hidden");
-      } catch (error) {
-        console.error(error);
-        setLoading(
-          "データを読み込めませんでした。\n\n" +
-          "1. 先に bun fetch-diagram.ts を実行して diagram-data.js を生成する\n" +
-          "2. その後に index.html を開く\n\n" +
-          `詳細: ${error.message || error}`
-        );
-      }
-    }
-
-    initialize();
-  </script>
+initialize();
+</script>
 </body>
 </html>

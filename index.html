@@ -302,9 +302,10 @@
 // 定数・設定
 // ============================================================
 const FONT = "'Avenir Next','Hiragino Sans','Yu Gothic',sans-serif";
-const PX_PER_MIN = 2.8;
-const PX_PER_KM  = 2.15;
-const TIME_H     = 52;
+const PX_PER_MIN     = 2.8;
+const PX_PER_KM_SHIN = 2.15;  // 新幹線: 1kmあたりのピクセル数
+const PX_PER_KM_ZAI  = 8.0;   // 在来線: 1kmあたりのピクセル数（10_diagramと同一）
+const TIME_H         = 52;
 
 // 新幹線列車種別
 const SHINKANSEN_META = {
@@ -408,7 +409,38 @@ function renderRouteList() {
   const prefix = currentGroup === "shinkansen" ? "shinkansen_" : "zairaisen_";
   if (!data || !data.lines) return;
 
+  let tokaidoMergedInserted = false;
+
   for (const [key, ld] of Object.entries(data.lines)) {
+    // 新幹線グループは東京〜博多のみ表示
+    if (currentGroup === "shinkansen" && key !== "tokyo_hakata") continue;
+
+    // 在来線: 東海道東西路線を「東海道線」として1エントリに統合
+    if (currentGroup === "zairaisen" && key === "tokaido_east") {
+      // tokaido_east の位置に tokaido_merged を挿入
+      if (!tokaidoMergedInserted) {
+        tokaidoMergedInserted = true;
+        const mergedId = prefix + "tokaido_merged";
+        const item = document.createElement("div");
+        item.className = "route-item" + (currentLineKey === mergedId ? " active" : "");
+        item.dataset.id = mergedId;
+        item.dataset.key = "tokaido_merged";
+        item.dataset.group = currentGroup;
+        const dot = document.createElement("span");
+        dot.className = "route-dot";
+        dot.style.background = ld.lineColor || "#FF7E1C";
+        item.appendChild(dot);
+        item.appendChild(document.createTextNode("東海道線"));
+        item.addEventListener("click", () => {
+          loadLine(currentGroup, "tokaido_merged");
+          setUiPanel(false);
+        });
+        routeList.appendChild(item);
+      }
+      continue;
+    }
+    if (currentGroup === "zairaisen" && key === "tokaido_west") continue;
+
     const id = prefix + key;
     const item = document.createElement("div");
     item.className = "route-item" + (currentLineKey === id ? " active" : "");
@@ -456,20 +488,142 @@ function renderLegend() {
 }
 
 // ============================================================
+// 在来線: 0時またぎ補正（最大ギャップ法）
+// ============================================================
+function normalizeMidnightCrossing(trains) {
+  // 時刻文字列を分に変換（異常値も正規化）
+  function t2m(t) {
+    if (!t) return Infinity;
+    const [h, m] = t.split(":").map(Number);
+    const normalH = h >= 30 ? h - 24 : h;
+    return normalH * 60 + m;
+  }
+
+  function addH24(t) {
+    if (!t) return t;
+    const [h, m] = t.split(":").map(Number);
+    const normalH = h >= 30 ? h - 24 : h;
+    return `${normalH + 24}:${String(m).padStart(2, "0")}`;
+  }
+
+  return trains.map(train => {
+    // ディープコピーで元データを保護
+    const stops = train.stops.map(s => ({ ...s }));
+
+    // 異常値（h >= 30）を正規化してソート
+    stops.sort((a, b) => t2m(a.dep || a.arr) - t2m(b.dep || b.arr));
+
+    if (stops.length < 2) return { ...train, stops };
+
+    // 最大ギャップを探索して0時またぎ境界を検出
+    let maxGap = 0, splitIdx = -1;
+    for (let i = 1; i < stops.length; i++) {
+      const gap = t2m(stops[i].dep || stops[i].arr) - t2m(stops[i - 1].dep || stops[i - 1].arr);
+      if (gap > maxGap) { maxGap = gap; splitIdx = i; }
+    }
+
+    // 3時間超のギャップは0時をまたいでいると判断
+    if (maxGap > 3 * 60 && splitIdx > 0) {
+      // ギャップより前のグループ（深夜0時台）に+24hを加算
+      for (let j = 0; j < splitIdx; j++) {
+        stops[j].arr = stops[j].arr ? addH24(stops[j].arr) : stops[j].arr;
+        stops[j].dep = stops[j].dep ? addH24(stops[j].dep) : stops[j].dep;
+      }
+      // 再ソート
+      stops.sort((a, b) => t2m(a.dep || a.arr) - t2m(b.dep || b.arr));
+    }
+
+    return { ...train, stops };
+  });
+}
+
+// ============================================================
+// 東海道線（熱海〜豊橋 + 豊橋〜米原）連結
+// ============================================================
+function buildMergedTokaido(zaiData) {
+  const east = zaiData.lines["tokaido_east"];
+  const west = zaiData.lines["tokaido_west"];
+  if (!east || !west) return null;
+
+  const eastSt  = east.stations;                       // si:0=熱海 〜 si:N=豊橋
+  const westSt  = west.stations;                       // si:0=豊橋 〜 si:M=米原
+  const eastLen = eastSt.length;                       // 豊橋のsi = eastLen-1
+  const toyoKm  = eastSt[eastLen - 1].km;              // 豊橋のキロ程（熱海起点）
+
+  // 駅リスト: 東側そのまま + 西側の豊橋（si:0）を除いてキロ程を熱海起点にオフセット
+  const mergedStations = [
+    ...eastSt,
+    ...westSt.slice(1).map(s => ({ name: s.name, km: toyoKm + s.km })),
+  ];
+
+  // 列車のマージ: 同一 trainNo+dir を1本に統合（区間またぎ列車）
+  const trainMap = new Map(); // `${trainNo}_${dir}` → train
+
+  for (const t of east.trains) {
+    const key = `${t.trainNo}_${t.dir}`;
+    trainMap.set(key, { ...t, stops: t.stops.map(s => ({ ...s })) });
+  }
+
+  for (const t of west.trains) {
+    const key = `${t.trainNo}_${t.dir}`;
+    // 西側のsi変換: si:0(豊橋) → eastLen-1、si:N → eastLen+N-1
+    const converted = t.stops.map(s => ({
+      ...s,
+      si: s.si === 0 ? eastLen - 1 : eastLen + s.si - 1,
+    }));
+
+    if (trainMap.has(key)) {
+      // 区間またぎ列車: 豊橋の重複ストップを除外してマージ
+      const existing = trainMap.get(key);
+      const nonDup   = converted.filter(s => s.si !== eastLen - 1);
+      existing.stops = [...existing.stops, ...nonDup];
+    } else {
+      trainMap.set(key, { ...t, stops: converted });
+    }
+  }
+
+  return {
+    lineKey:   "tokaido_merged",
+    lineName:  "東海道線",
+    lineColor: east.lineColor,
+    startHour: Math.min(east.startHour ?? 3, west.startHour ?? 3),
+    endHour:   Math.max(east.endHour   ?? 27, west.endHour  ?? 27),
+    stations:  mergedStations,
+    trains:    Array.from(trainMap.values()),
+  };
+}
+
+// ============================================================
 // 路線ロード
 // ============================================================
 function loadLine(group, key) {
   const data   = group === "shinkansen" ? window.DIAGRAM_DATA : window.ZAIRAISEN_DATA;
   const prefix = group === "shinkansen" ? "shinkansen_" : "zairaisen_";
-  if (!data || !data.lines || !data.lines[key]) return;
+  if (!data || !data.lines) return;
 
-  const ld = data.lines[key];
+  // 東海道線連結路線の仮想キー処理
+  let ld;
+  if (group === "zairaisen" && key === "tokaido_merged") {
+    ld = buildMergedTokaido(data);
+    if (!ld) return;
+  } else {
+    if (!data.lines[key]) return;
+    ld = data.lines[key];
+  }
+
   currentLineKey = prefix + key;
   currentType    = group;
+
+  // 在来線の場合: 0時またぎ列車を正規化（ディープコピーして元データを汚染しない）
+  let trains = ld.trains;
+  if (group === "zairaisen") {
+    trains = normalizeMidnightCrossing(ld.trains);
+  }
+
   currentLine    = {
     lineName:  ld.lineName,
     stations:  ld.stations,
-    trains:    ld.trains,
+    trains,
     startHour: ld.startHour ?? (group === "shinkansen" ? 6 : 3),
     endHour:   ld.endHour   ?? (group === "shinkansen" ? 24 : 27),
   };
@@ -488,7 +642,9 @@ function loadLine(group, key) {
 // ============================================================
 function timeToMin(t) {
   const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
+  // h >= 30 は API の異常値（例: 47:56 → 本来は 23:56）を正規化する
+  const normalH = h >= 30 ? h - 24 : h;
+  return normalH * 60 + m;
 }
 
 function startMin() { return (currentLine?.startHour ?? 6) * 60; }
@@ -498,7 +654,8 @@ function xOfMin(min) {
   return (min - startMin()) * PX_PER_MIN * view.scale + view.offsetX;
 }
 function yOfKm(km) {
-  return km * PX_PER_KM * view.scale + view.offsetY;
+  const pxKm = currentType === "zairaisen" ? PX_PER_KM_ZAI : PX_PER_KM_SHIN;
+  return km * pxKm * view.scale + view.offsetY;
 }
 
 function trainColor(train) {
@@ -545,7 +702,8 @@ function resizeAll() {
 function clampView() {
   const pad  = 34;
   const cw   = (endMin() - startMin()) * PX_PER_MIN * view.scale;
-  const ch   = currentLine?.stations.at(-1)?.km * PX_PER_KM * view.scale || 0;
+  const pxKm = currentType === "zairaisen" ? PX_PER_KM_ZAI : PX_PER_KM_SHIN;
+  const ch   = currentLine?.stations.at(-1)?.km * pxKm * view.scale || 0;
   const dw   = diagramArea.clientWidth;
   const dh   = diagramArea.clientHeight;
 
@@ -888,11 +1046,18 @@ function drawLabelOnFirstSegment(ctx, segs, label, color) {
   }
 }
 
-// ハロ列車: 画面内で最初に見えるセグメントにラベルを表示
+// ハロ列車: 画面内で最初に見えるセグメントにラベルを表示（四辺クランプ対応）
 function drawLabelOnFirstVisibleSegment(ctx, segs, label, color, canvasW) {
   const canvasH = diagCanvas.clientHeight;
+  const size = Math.max(8, Math.min(13, 11 / Math.sqrt(Math.max(view.scale, 0.65))));
+
+  // テキスト幅を事前に計測（font設定後）
+  ctx.font = `900 ${size}px ${FONT}`;
+  const textW = ctx.measureText(label).width;
+  const boxW  = textW + 6;
+  const boxH  = size + 4;
+
   for (const seg of segs) {
-    // セグメントが画面内に少しでも入っているか確認
     const minX = Math.min(seg.x0, seg.x1);
     const maxX = Math.max(seg.x0, seg.x1);
     if (maxX < 0 || minX > canvasW) continue;
@@ -902,27 +1067,31 @@ function drawLabelOnFirstVisibleSegment(ctx, segs, label, color, canvasW) {
 
     const angle = Math.atan2(seg.y1 - seg.y0, seg.x1 - seg.x0);
 
-    // x0が画面外（左）の場合、交点を計算
+    // 画面左端からはみ出している場合は交点を始点に補正
     let startX = seg.x0;
     let startY = seg.y0;
     if (seg.x0 < 0 && seg.x1 > 0) {
-      // y = y0 + (y1-y0)/(x1-x0) * (0 - x0)
       startX = 0;
       startY = seg.y0 + (seg.y1 - seg.y0) / (seg.x1 - seg.x0) * (0 - seg.x0);
     }
 
-    const px = Math.max(4, startX + Math.cos(angle) * 6);
-    const py = startY + Math.sin(angle) * 6;
-    const size = Math.max(8, Math.min(13, 11 / Math.sqrt(Math.max(view.scale, 0.65))));
+    // ラベル基準位置（セグメント上の少し先）
+    let px = startX + Math.cos(angle) * 6;
+    let py = startY + Math.sin(angle) * 6;
+
+    // 四辺クランプ: ラベルボックスが画面内に収まるように調整
+    // 回転を考慮した簡易クランプ（水平方向・垂直方向に補正）
+    const margin = 4;
+    px = Math.max(margin, Math.min(canvasW - boxW - margin, px));
+    py = Math.max(boxH + margin, Math.min(canvasH - margin, py));
 
     ctx.save();
     ctx.translate(px, py);
     ctx.rotate(angle);
 
     // 背景帯
-    const metrics = ctx.measureText(label);
     ctx.fillStyle = "rgba(0,0,0,0.55)";
-    ctx.fillRect(-3, -(size + 3), metrics.width + 6, size + 4);
+    ctx.fillRect(-3, -(boxH - 1), boxW, boxH);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = `900 ${size}px ${FONT}`;
@@ -1126,9 +1295,8 @@ async function initialize() {
     return;
   }
 
-  // 最初のロード: 新幹線のデフォルト路線
-  const defaultKey = Object.keys(shin.lines)[0] || "tokyo_hakata";
-  loadLine("shinkansen", defaultKey);
+  // 最初のロード: 新幹線「東京〜博多」を固定表示
+  loadLine("shinkansen", "tokyo_hakata");
 
   loadingEl.classList.add("hidden");
 }

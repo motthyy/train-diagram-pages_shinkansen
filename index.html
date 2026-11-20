@@ -47,7 +47,7 @@
       align-items: flex-start;
       justify-content: center;
       gap: 4px;
-      padding: 8px 10px;
+      padding: 8px 6px;
       background: linear-gradient(180deg, rgba(7,17,33,0.96), rgba(13,26,46,0.9));
       border-right: 1px solid var(--panel-line);
       border-bottom: 1px solid var(--panel-line);
@@ -1056,12 +1056,26 @@ function isExpressThick(train) {
   return currentType === "zairaisen" && (ZAIRAISEN_META[train.kind] || {}).thick;
 }
 
+// 駅名欄の幅は最大 4 文字分。5 文字以上の駅名は文字を縮小してこの幅に収める（drawStationName）。
+const STATION_NAME_MAX_CHARS = 4;
+function stationNameMaxWidth(ctx, size) {
+  ctx.font = `700 ${size}px ${FONT}`;
+  return ctx.measureText("駅".repeat(STATION_NAME_MAX_CHARS)).width;
+}
+
 function calcSidebarWidth(stations) {
   const ctx = document.createElement("canvas").getContext("2d");
   ctx.font = `700 14px ${FONT}`;
   let max = 0;
   for (const st of stations) max = Math.max(max, ctx.measureText(st.name).width);
-  return Math.ceil(max) + 22;
+  return Math.ceil(Math.min(max, stationNameMaxWidth(ctx, 14))) + 22;
+}
+
+function drawStationName(name, x, y, size) {
+  const maxW = stationNameMaxWidth(stCtx, size);
+  const w = stCtx.measureText(name).width;
+  if (w > maxW) stCtx.font = `700 ${size * maxW / w}px ${FONT}`;
+  stCtx.fillText(name, x, y);
 }
 
 function applySidebarWidth(w) {
@@ -1219,7 +1233,7 @@ function drawStationLabelsNoOverlap(w, h, sf, kf) {
     stCtx.font = `700 ${sf}px ${FONT}`;
     stCtx.textAlign = "right";
     stCtx.textBaseline = "middle";
-    stCtx.fillText(st.name, w - 8, y - 5);
+    drawStationName(st.name, w - 8, y - 5, sf);
 
     if (view.scale >= 0.6) {
       const kmTop = y + 9 - kf / 2, kmBottom = y + 9 + kf / 2;
@@ -1257,7 +1271,7 @@ function drawStationSidebar() {
     stCtx.font = `700 ${sf}px ${FONT}`;
     stCtx.textAlign = "right";
     stCtx.textBaseline = "middle";
-    stCtx.fillText(st.name, w - 8, y - 5);
+    drawStationName(st.name, w - 8, y - 5, sf);
 
     if (view.scale >= 0.6) {
       stCtx.fillStyle = "#7ec8e3";
@@ -1317,7 +1331,7 @@ function drawDiagram() {
   diagCtx.setLineDash([]);
 
   // ---- 駅横線 ----
-  // 新幹線: のぞみ停車駅 = 太線
+  // 新幹線: のぞみ停車駅 + 九州新幹線の熊本・鹿児島中央 = 太線
   // 在来線: 特急停車駅 = 太線 (特急なければ快速停車駅)
   const thickStations = new Set();
   const fallbackStations = new Set();
@@ -1328,6 +1342,9 @@ function drawDiagram() {
         for (const s of train.stops) thickStations.add(s.si);
       }
     }
+    currentLine.stations.forEach((st, i) => {
+      if (st.name === "熊本" || st.name === "鹿児島中央") thickStations.add(i);
+    });
   } else {
     const hasExpress = currentLine.trains.some(t => t.kind === "express");
     for (const train of currentLine.trains) {
